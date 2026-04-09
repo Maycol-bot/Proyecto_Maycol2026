@@ -29,7 +29,22 @@ const Login = () => {
   const iniciarSesion = async (e) => {
     if (e) e.preventDefault();   // ← Buena práctica
 
+    const usuarioValido = { email: "dev51unan@gmail.com", password: "123456" };
+
     try {
+      if (usuario === usuarioValido.email && contrasena === usuarioValido.password) {
+        console.log("Sesión iniciada localmente");
+        localStorage.setItem("usuario-supabase", usuario);
+        navegar("/");
+      } else {
+        setError("Usuario o contraseña incorrectos (Modo Local)");
+      } 
+    } catch (err) {
+      setError("Error al iniciar sesión (Modo Local)");
+      console.error("Error en el proceso de inicio de sesión:", err);
+    }
+
+    /*try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: usuario,
         password: contrasena,
@@ -47,7 +62,7 @@ const Login = () => {
     } catch (err) {
       setError("Error al conectarse al servidor");
       console.error("Error en la solicitud:", err);
-    }
+    }*/
   };
 
   return (
