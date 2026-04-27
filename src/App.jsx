@@ -1,11 +1,10 @@
-import { useState } from 'react'
-
+import { useState } from 'react';           // ← puedes quitarlo si no lo usas
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Encabezado from "./components/navegacion/Encabezado";
 
 import Inicio from "./views/Inicio";
-import Categoria from "./views/Categorias";
+import Categorias from "./views/Categorias";
 import Catalogo from "./views/Catalogo";
 import Producto from "./views/Productos";
 import Login from "./views/Login";
@@ -14,14 +13,13 @@ import Pagina404 from "./views/Pagina404";
 
 import './App.css';
 
-
 const App = () => {
-  return(
+  return (
     <Router>
       <Encabezado />
+      
       <main className="marge-superior-main">
         <Routes>
-
           <Route path="/login" element={<Login />} />
 
           <Route path="/" element={
@@ -30,9 +28,9 @@ const App = () => {
             </RutaProtegida>
           } />
 
-          <Route path="/categoria" element={
+          <Route path="/categorias" element={
             <RutaProtegida>
-              <Categoria />
+              <Categorias />
             </RutaProtegida>
           } />
 
@@ -42,18 +40,17 @@ const App = () => {
             </RutaProtegida>
           } />
 
-          <Route path="/producto/:id" element={
+          <Route path="/producto" element={
             <RutaProtegida>
               <Producto />
             </RutaProtegida>
           } />
 
           <Route path="*" element={<Pagina404 />} />
-
         </Routes>
       </main>
     </Router>
-  )
+  );
 };
 
 export default App;
