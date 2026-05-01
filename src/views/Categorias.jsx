@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Spinner, Modal, Form } from "react-bootstrap";
+import { Container, Row, Col, Button, Spinner, Modal, Form, Alert, Pagination } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 
 import TablaCategorias from "../components/categorias/TablaCategorias";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas";
+import Paginacion from "../components/ordenamiento/Paginacion";
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategoria";
 import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
@@ -18,6 +20,38 @@ const Categorias = () => {
         nombre_categoria: "",
         descripcion_categoria: "",
     });
+
+    const [textoBusqueda, setTextoBusqueda] = useState("");
+    const [categoriasFiltradas, setCategoriasFiltradas] = useState([]);
+
+    const [paginaActual, setPaginaActual] = useState(1);
+    const [registroPorPagina, setRegistroPorPagina] = useState(5);
+
+    const categoriasPaginadas = categoriasFiltradas.slice(
+        (paginaActual - 1) * registroPorPagina,
+        paginaActual * registroPorPagina
+    );
+
+    const manejarBusqueda = (e) => {
+        setTextoBusqueda(e.target.value);
+    };
+
+    useEffect(() => {
+    const texto = textoBusqueda.toLowerCase().trim();
+
+    if (!texto) {
+        setCategoriasFiltradas(categorias);
+        return;
+    }
+
+    const filtradas = categorias.filter((cat) => 
+        cat.nombre_categoria?.toLowerCase().includes(texto) ||
+        (cat.descripcion_categoria && 
+         cat.descripcion_categoria.toLowerCase().includes(texto))
+    );
+
+    setCategoriasFiltradas(filtradas);
+}, [textoBusqueda, categorias]);
 
     const [toast, setToast] = useState({
         mostrar: false,
@@ -114,44 +148,44 @@ const Categorias = () => {
         }
     };
 
-   const eliminarCategoria = async () => {
-    if (!categoriaEliminar) return;
+    const eliminarCategoria = async () => {
+        if (!categoriaEliminar) return;
 
-    try {
-        setMostrarModalEliminacion(false);
+        try {
+            setMostrarModalEliminacion(false);
 
-        const { error } = await supabase
-            .from("categorias")
-            .delete()
-            .eq("id_categoria", categoriaEliminar.id_categoria);
+            const { error } = await supabase
+                .from("categorias")
+                .delete()
+                .eq("id_categoria", categoriaEliminar.id_categoria);
 
-        if (error) {
-            console.error("Error eliminando categoría:", error.message);
+            if (error) {
+                console.error("Error eliminando categoría:", error.message);
+                setToast({
+                    mostrar: true,
+                    mensaje: `Error al eliminar la categoría ${categoriaEliminar.nombre_categoria}.`,
+                    tipo: "error"
+                });
+                return;
+            }
+
+            await cargarCategorias();
+
             setToast({
                 mostrar: true,
-                mensaje: `Error al eliminar la categoría ${categoriaEliminar.nombre_categoria}.`,
+                mensaje: `Categoría ${categoriaEliminar.nombre_categoria} eliminada correctamente.`,
+                tipo: "exito"
+            });
+
+        } catch (err) {
+            console.error("Excepción al eliminar categoría:", err.message);
+            setToast({
+                mostrar: true,
+                mensaje: "Error inesperado al eliminar categoría.",
                 tipo: "error"
             });
-            return;
         }
-
-        await cargarCategorias();
-
-        setToast({
-            mostrar: true,
-            mensaje: `Categoría ${categoriaEliminar.nombre_categoria} eliminada correctamente.`,
-            tipo: "exito"
-        });
-
-    } catch (err) {
-        console.error("Excepción al eliminar categoría:", err.message);
-        setToast({
-            mostrar: true,
-            mensaje: "Error inesperado al eliminar categoría.",
-            tipo: "error"
-        });
-    }
-};
+    };
 
     const manejoCambioInput = (e) => {
         const { name, value } = e.target;
@@ -178,6 +212,27 @@ const Categorias = () => {
 
             <hr />
 
+            <Row  className="mb-4">
+                <Col>
+                    <CuadroBusquedas
+                        textoBusqueda={textoBusqueda}
+                        manejarCambioBusqueda={manejarBusqueda}
+                        placeholder="Buscar por nombre o descripción..."
+                    />
+                </Col>
+            </Row>
+
+            {cargando && textoBusqueda.trim() && categoriasFiltradas.length === 0 && (
+            <Row  className="mb-4">
+                <Col>
+                <Alert variant="info" className="text-center">
+                    <i className="bi bi-info-circle me-2"></i>
+                    No se encontraron categorías que coincidan con "{textoBusqueda}"
+                </Alert>
+                </Col>
+            </Row>    
+            )}
+
             {/* Spinner de carga */}
             {cargando && (
                 <Row className="text-center my-5">
@@ -188,32 +243,32 @@ const Categorias = () => {
                 </Row>
             )}
 
-            {/* Tarjetas para dispositivos móviles */}
-            <Col sx={12} sm={12} md={12} className="d-lg-none">
-                <TarjetaCategoria
-                    categoria={categorias}
-                    abrirModalEdicion={abrirModalEdicion}
-                    abrirModalEliminacion={(categoria) => {
-                        setCategoriaEliminar(categoria);
-                        setMostrarModalEliminacion(true);
-                    }}
-                />
-            </Col>
-
-            {/* Tabla de resultados */}
+            {/* Vista en Tarjetas - Solo en móviles */}
             {!cargando && categorias.length > 0 && (
-                <Row>
-                    <Col lg={12}>
-                        <TablaCategorias
-                            categorias={categorias}
-                            abrirModalEdicion={abrirModalEdicion}
-                            abrirModalEliminacion={(categoria) => {
-                                setCategoriaEliminar(categoria);
-                                setMostrarModalEliminacion(true);
-                            }}
-                        />
-                    </Col>
-                </Row>
+                <div className="d-lg-none">
+                    <TarjetaCategoria
+                        categoria={categoriasFiltradas}
+                        abrirModalEdicion={abrirModalEdicion}
+                        abrirModalEliminacion={(categoria) => {
+                            setCategoriaEliminar(categoria);
+                            setMostrarModalEliminacion(true);
+                        }}
+                    />
+                </div>
+            )}
+
+            {/* Vista en Tabla - Solo en desktop y tablets grandes */}
+            {!cargando && categorias.length > 0 && (
+                <div className="d-none d-lg-block">
+                    <TablaCategorias
+                        categorias={categoriasFiltradas}
+                        abrirModalEdicion={abrirModalEdicion}
+                        abrirModalEliminacion={(categoria) => {
+                            setCategoriaEliminar(categoria);
+                            setMostrarModalEliminacion(true);
+                        }}
+                    />
+                </div>
             )}
 
             {/* MODAL DE EDICIÓN (Integrado y corregido) */}
@@ -275,7 +330,7 @@ const Categorias = () => {
                 agregarCategoria={agregarCategoria}
             />
 
-                <ModalEliminacionCategoria
+            <ModalEliminacionCategoria
                 mostrarModalEliminacion={mostrarModalEliminacion}
                 setMostrarModalEliminacion={setMostrarModalEliminacion}
                 eliminarCategoria={eliminarCategoria}
@@ -288,6 +343,18 @@ const Categorias = () => {
                 tipo={toast.tipo}
                 onCerrar={() => setToast({ ...toast, mostrar: false })}
             />
+
+            {/* === PAGINACIÓN === */}
+            {!cargando && categoriasFiltradas.length > 0 && (
+                <Paginacion
+                    registroPorPagina={registroPorPagina}
+                    totalRegistros={categoriasFiltradas.length}
+                    paginaActual={paginaActual}
+                    establecerPaginaActual={setPaginaActual}
+                    establecerRegistroPorPagina={setRegistroPorPagina}
+                />
+            )}
+
         </Container>
     );
 };

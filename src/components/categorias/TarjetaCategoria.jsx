@@ -104,6 +104,7 @@ const TarjetaCategoria = ({
                                             variant="outline-warning"
                                             size="sm"
                                             onClick={() => {
+                                                e.stopPropagation();
                                                 abrirModalEdicion(cat);
                                                 setIdTarjetaActiva(null);
                                             }}
@@ -116,6 +117,7 @@ const TarjetaCategoria = ({
                                             variant="outline-danger"
                                             size="sm"
                                             onClick={() => {
+                                                e.stopPropagation();
                                                 abrirModalEliminacion(cat);
                                                 setIdTarjetaActiva(null);
                                             }}
