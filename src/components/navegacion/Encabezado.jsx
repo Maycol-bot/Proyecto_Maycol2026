@@ -9,12 +9,16 @@ const Encabezado = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  
+
   const manejarToggle = () => setMostrarMenu(!mostrarMenu);
 
   const manejarNavegacion = (ruta) => {
     navigate(ruta);
     setMostrarMenu(false);
   };
+
+  
 
   const cerrarSesion = async () => {
     try {
@@ -56,6 +60,25 @@ const Encabezado = () => {
   } else {
     contenidoMenu = (
       <>
+
+      <>
+    <Nav className="flex-column">
+      <Nav.Link href="/productos">
+    <i className="bi-box-seam me-2"></i>
+    Productos
+  </Nav.Link>
+
+  <Nav.Link href="/catalogo">
+    <i className="bi-grid me-2"></i>
+    Catálogo
+  </Nav.Link>
+
+  <Nav.Link href="/categorias">
+    <i className="bi-tags me-2"></i>
+    Categorías
+  </Nav.Link>
+    </Nav>
+  </>
         <Nav className="ms-auto pe-2">
           <Nav.Link onClick={() => manejarNavegacion("/")} className="text-white">
             <strong>Inicio</strong>
@@ -74,6 +97,8 @@ const Encabezado = () => {
             <i className="bi-box-arrow-right me-2"></i>
           </Nav.Link>
         </Nav>
+
+        
 
         {mostrarMenu && (
           <div className="mt-3 p-3 rounded bg-light text-dark">

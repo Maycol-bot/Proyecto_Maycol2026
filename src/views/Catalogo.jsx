@@ -1,17 +1,139 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Container, Row, Col, Spinner, Alert, Form } from "react-bootstrap";
+import { supabase } from "../database/supabaseConfig";
+import TarjetaCatalogo from "../components/catalogo/TarjetaCatalogo";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas";
 
 const Catalogo = () => {
+  // Variables de estado [cite: 150]
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("todas");
+  const [textoBusqueda, setTextoBusqueda] = useState("");
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Método para cargar datos [cite: 159, 163]
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      const [resProductos, resCategorias] = await Promise.all([
+  supabase.from("productos").select("*").order("nombre_productos"),
+        supabase.from("categorias").select("id_categoria, nombre_categoria").order("nombre_categoria")
+      ]);
+
+      if (resProductos.error) throw resProductos.error;
+      if (resCategorias.error) throw resCategorias.error;
+
+      setProductos(resProductos.data || []);
+      setCategorias(resCategorias.data || []);
+    } catch (err) {
+      console.error("Error al cargar catálogo:", err);
+      setError("No se pudieron cargar los productos. Intenta más tarde.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  // Lógica de filtrado y búsqueda [cite: 184]
+  const productosFiltrados = useMemo(() => {
+    let filtrados = productos;
+
+    if (categoriaSeleccionada !== "todas") {
+      filtrados = filtrados.filter(prod => 
+        prod.categoria_producto === parseInt(categoriaSeleccionada)
+      );
+    }
+
+    if (textoBusqueda.trim()) {
+      const textoLower = textoBusqueda.toLowerCase().trim();
+      filtrados = filtrados.filter(prod => {
+        const nombre = prod.nombre_productos?.toLowerCase() || "";
+        const descripcion = prod.descripcion_producto?.toLowerCase() || "";
+        const precioTexto = prod.precio_venta?.toString() || "";
+        
+        return nombre.includes(textoLower) || 
+               descripcion.includes(textoLower) || 
+               precioTexto.includes(textoLower);
+      });
+    }
+    return filtrados;
+  }, [productos, categoriaSeleccionada, textoBusqueda]);
+
+  // Manejadores de eventos [cite: 209, 211]
+  const manejarCambioCategoria = (e) => setCategoriaSeleccionada(e.target.value);
+  const manejarCambioBusqueda = (e) => setTextoBusqueda(e.target.value);
+  
+  const obtenerNombreCategoria = (idCategoria) => {
+    const cat = categorias.find(c => c.id_categoria === idCategoria);
+    return cat ? cat.nombre_categoria : "Sin categoría";
+  };
+
   return (
-    <div className="container mt-5">
-      <h1 className="mb-4 text-center">🛒 Catálogo de Discosa</h1>
-      
-      <div className="alert alert-warning text-center p-5">
-        <h2>🚧 Página en Construcción</h2>
-        <p className="lead mt-3">
-          Estamos trabajando para traerte nuestro catálogo completo de discos y productos.
-        </p>
-        <p>¡Pronto podrás ver y comprar aquí!</p>
-      </div>
+    <div className="mt-3 px-1">
+      <Row className="text-center mb-4">
+        <Col>
+          <p className="lead text-muted">Nuestros productos</p>
+        </Col>
+      </Row>
+
+      {/* Selectores de búsqueda y filtro [cite: 222] */}
+      <Row className="mb-4 align-items-end">
+        <Col md={4} className="mb-2">
+          <Form.Group controlId="filtroCategoria">
+            <Form.Select 
+              value={categoriaSeleccionada} 
+              onChange={manejarCambioCategoria}
+              className="shadow-sm"
+            >
+              <option value="todas">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat.id_categoria} value={cat.id_categoria}>
+                  {cat.nombre_categoria}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
+        <Col md={6} className="mb-2">
+          <Form.Group controlId="busquedaProducto">
+            <CuadroBusquedas 
+              textoBusqueda={textoBusqueda} 
+              manejarCambioBusqueda={manejarCambioBusqueda} 
+            />
+          </Form.Group>
+        </Col>
+      </Row>
+
+      {/* Estados de carga y resultados [cite: 245, 251] */}
+      {cargando ? (
+        <Row className="text-center my-5">
+          <Col>
+            <Spinner animation="border" variant="success" />
+            <p className="mt-3 text-muted">Cargando productos...</p>
+          </Col>
+        </Row>
+      ) : productosFiltrados.length === 0 ? (
+        <Alert variant="info" className="text-center">
+          <i className="bi bi-info-circle me-2"></i>
+          No se encontraron productos que coincidan con tu búsqueda.
+        </Alert>
+      ) : (
+        <Row className="g-3">
+          {productosFiltrados.map(producto => (
+            <Col xs={12} sm={6} md={4} lg={3} key={producto.id_producto}>
+              <TarjetaCatalogo 
+                producto={producto} 
+                categoriaNombre={obtenerNombreCategoria(producto.categoria_producto)}
+              />
+            </Col>
+          ))}
+        </Row>
+      )}
     </div>
   );
 };

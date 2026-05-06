@@ -1,7 +1,7 @@
 import React from "react";
 import { Table, Button, Image, ProgressBar } from "react-bootstrap";
 
-const TablaProductos = ({ productos, abrirModalEliminacion }) => {
+const TablaProductos = ({ productos, abrirModalEliminacion, abrirModalEdicion }) => {
   return (
     <Table hover responsive className="align-middle">
       <thead className="table-light">
@@ -37,6 +37,15 @@ const TablaProductos = ({ productos, abrirModalEliminacion }) => {
     <td>{prod.categorias?.nombre_categoria}</td>
     <td>${parseFloat(prod.precio_venta).toFixed(2)}</td>
     <td className="text-end">
+
+      <Button
+        variant="outline-warning"
+        size="sm"
+        className="me-2"
+        onClick={() => abrirModalEdicion(prod)}
+      >
+        <i className="bi bi-pencil"></i>
+      </Button>
       <Button
         variant="outline-danger"
         size="sm"
