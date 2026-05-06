@@ -6,7 +6,7 @@ import Encabezado from "./components/navegacion/Encabezado";
 import Inicio from "./views/Inicio";
 import Categorias from "./views/Categorias";
 import Catalogo from "./views/Catalogo";
-import Producto from "./views/Productos";
+import Productos from "./views/Productos";
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
@@ -40,9 +40,9 @@ const App = () => {
             </RutaProtegida>
           } />
 
-          <Route path="/producto" element={
+          <Route path="/productos" element={
             <RutaProtegida>
-              <Producto />
+              <Productos />
             </RutaProtegida>
           } />
 
