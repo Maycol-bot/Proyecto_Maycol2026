@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Container, Row, Col, Spinner, Alert, Form } from "react-bootstrap";
-import { supabase } from "../database/supabaseConfig";
+import { supabase } from "../database/supabaseconfig";
 import TarjetaCatalogo from "../components/catalogo/TarjetaCatalogo";
 import CuadroBusquedas from "../components/busquedas/cuadroBusquedas";
 
