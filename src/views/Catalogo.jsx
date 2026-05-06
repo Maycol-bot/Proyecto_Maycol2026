@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Container, Row, Col, Spinner, Alert, Form } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import TarjetaCatalogo from "../components/catalogo/TarjetaCatalogo";
-import CuadroBusquedas from "../components/busquedas/cuadroBusquedas";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 
 const Catalogo = () => {
   // Variables de estado [cite: 150]

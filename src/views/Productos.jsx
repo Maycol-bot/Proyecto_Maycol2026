@@ -4,7 +4,7 @@ import { supabase } from "../database/supabaseconfig";
 import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
 import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import NotificacionOperacion from "../components/NotificacionesOperacion";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 import TablaProductos from "../components/productos/TablaProductos";
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
