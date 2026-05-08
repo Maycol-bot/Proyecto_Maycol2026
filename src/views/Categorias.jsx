@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Spinner, Modal, Form, Alert, Pagination } 
 import { supabase } from "../database/supabaseconfig";
 
 import TablaCategorias from "../components/categorias/TablaCategorias";
-import CuadroBusquedas from "../components/busquedas/cuadroBusquedasjsx";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 import Paginacion from "../components/ordenamiento/Paginacion";
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategoria";
