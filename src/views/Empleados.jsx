@@ -7,7 +7,7 @@ import ModalEdicionEmpleado from "../components/empleados/ModalEldicionEmpleado.
 import TablaEmpleados from "../components/empleados/TablaEmpleados.jsx";
 import TarjetaEmpleado from "../components/empleados/TarjetaEmpleado.jsx";
 import NotificacionOperacion from "../components/NotificacionesOperacion.jsx";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas.jsx";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 
 const Empleados = () => {
   const [empleados, setEmpleados] = useState([]);

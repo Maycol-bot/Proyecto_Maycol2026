@@ -7,7 +7,7 @@ import ModalEliminacionCliente from "../components/clientes/ModalEliminacionClie
 import ModalEdicionCliente from "../components/clientes/ModalEdicionCliente.jsx";
 import TablaClientes from "../components/clientes/TablaClientes.jsx";
 import NotificacionOperacion from "../components/NotificacionesOperacion.jsx";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas.jsx";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 import Paginacion from "../components/ordenamiento/Paginacion";
 
 const Clientes = () => {
