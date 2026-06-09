@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Alert, Spinner } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
-import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
-import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
-import NotificacionOperacion from "../components/NotificacionesOperacion";
+import ModalRegistroProducto from "../components/productos/ModalRegistroProducto.jsx";
+import ModalEdicionProducto from "../components/productos/ModalEdicionProducto.jsx";
+import NotificacionOperacion from "../components/NotificacionesOperacion.jsx";
 import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
-import TablaProductos from "../components/productos/TablaProductos";
-import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
-import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import TablaProductos from "../components/productos/TablaProductos.jsx";
+import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria.jsx";
+import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto.jsx";
 import ModalQRProducto from "../components/productos/ModalQRProducto.jsx"; 
 
 const Producto = () => {

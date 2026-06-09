@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import NotificacionOperacion from "../components/NotificacionesOperacion.jsx";
-import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 import Paginacion from "../components/ordenamiento/Paginacion";
 import TablaVentas from "../components/ventas/TablaVentas.jsx";
 import TarjetaVenta from "../components/ventas/TarjetaVenta.jsx";
