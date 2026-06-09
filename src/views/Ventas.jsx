@@ -60,8 +60,8 @@ const Ventas = () => {
           *,
           clientes (nombre_cliente, apellido_cliente),
           empleados (nombre_empleado, apellido_empleado),
-          detalles_ventas (*, productos (nombre_producto))
-        `)
+          detalles_ventas (*, productos (nombre_productos)) 
+        `) // 👆 CORREGIDO: Se cambió 'nombre_producto' por 'nombre_productos' con "s"
         .order("fecha_venta", { ascending: false });
 
       if (error) {
@@ -147,17 +147,24 @@ const Ventas = () => {
 
   const agregarDetalle = (producto, cantidad) => {
     if (!producto || !cantidad) return;
+    
     setDetalles(prev => {
-      const existe = prev.find(d => d.id_producto === producto.id_producto);
+      // CORREGIDO: Se usa id_productos (con 's') porque así viene de la tabla productos
+      const existe = prev.find(d => d.id_producto === producto.id_productos);
+      
       if (existe) {
         return prev.map(d =>
-          d.id_producto === producto.id_producto ? { ...d, cantidad: d.cantidad + cantidad } : d
+          d.id_producto === producto.id_productos ? { ...d, cantidad: d.cantidad + cantidad } : d
         );
       }
+      
+      // Aquí armamos el objeto detalle interno del formulario. 
+      // Mantenemos las propiedades en singular para no alterar tu FormularioVenta,
+      // pero las alimentamos con los campos correctos (con 's') del objeto 'producto'
       return [...prev, {
-        id_producto: producto.id_producto,
-        nombre_producto: producto.nombre_producto,
-        precio: producto.precio_venta,
+        id_producto: producto.id_productos,         // CORREGIDO: id_productos
+        nombre_producto: producto.nombre_productos, // CORREGIDO: nombre_productos
+        precio: producto.precio_venta,              // Este se mantiene igual
         cantidad
       }];
     });

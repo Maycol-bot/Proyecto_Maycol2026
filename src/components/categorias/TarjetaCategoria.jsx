@@ -6,6 +6,8 @@ const TarjetaCategoria = ({
     categoria,
     abrirModalEdicion,
     abrirModalEliminacion,
+    generarPDFCategoria,
+    copiarCategoria
 }) => {
     const [cargando, setCargando] = useState(true);
     const [idTarjetaActiva, setIdTarjetaActiva] = useState(null);
@@ -125,6 +127,33 @@ const TarjetaCategoria = ({
                                         >
                                             <i className="bi bi-trash"></i>
                                         </Button>
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            onClick={() => {
+                                                e.stopPropagation();
+                                                generarPDFCategoria(cat);
+                                                setIdTarjetaActiva(null);
+                                            }}
+                                            aria-label={`Generar PDF de ${cat.nombre_categoria}`}
+                                        >
+                                            <i className="bi bi-file-earmark-pdf"></i>
+                                        </Button>
+                                        <Button
+  variant="outline-success"
+  size="sm"
+  className="m-1"
+  onClick={(e) => {
+    e.stopPropagation(); // CORREGIDO: Ahora 'e' existe y evita que se abra/active la tarjeta
+    copiarCategoria(cat); // Asegúrate de que aquí se llame 'cat' según tus props
+    if (typeof setIdTarjetaActiva === 'function') {
+      setIdTarjetaActiva(null);
+    }
+  }}
+  title={`Copiar ${cat.nombre_categoria}`}
+>
+  <i className="bi bi-clipboard"></i>
+</Button>
                                     </div>
                                 </div>
                             )}

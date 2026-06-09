@@ -97,16 +97,19 @@ const FormularioVenta = ({
             <Row className="align-items-end">
               <Col sm={6}>
                 <Form.Select
-                  value={productoSeleccionado?.id_producto || ""}
+                  /* 1. ✅ CORREGIDO: id_productos (con 's') para controlar el valor seleccionado */
+                  value={productoSeleccionado?.id_productos || ""}
                   onChange={(e) => {
-                    const prod = productos.find(p => p.id_producto === Number(e.target.value));
+                    /* 2. ✅ CORREGIDO: Buscar usando p.id_productos (con 's') */
+                    const prod = productos.find(p => p.id_productos === Number(e.target.value));
                     setProductoSeleccionado(prod);
                   }}
                 >
                   <option value="">Seleccionar producto...</option>
                   {productos.map(p => (
-                    <option key={p.id_producto} value={p.id_producto}>
-                      {p.nombre_producto} - C${p.precio_venta}
+                    /* 3. ✅ CORREGIDO: keys y variables modificadas a plural (id_productos y nombre_productos) */
+                    <option key={p.id_productos} value={p.id_productos}>
+                      {p.nombre_productos} - C${p.precio_venta}
                     </option>
                   ))}
                 </Form.Select>
@@ -146,7 +149,7 @@ const FormularioVenta = ({
                         <div>
                           <div>{det.nombre_producto}</div>
                           <small className="text-muted">
-                            {det.cantidad} × C${det.precio}
+                            {det.amount || det.cantidad} × C${det.precio}
                           </small>
                         </div>
                         <div className="text-end">

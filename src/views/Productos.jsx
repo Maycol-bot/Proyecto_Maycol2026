@@ -8,6 +8,7 @@ import CuadroBusquedas from "../components/busquedas/cuadroBusquedas.jsx";
 import TablaProductos from "../components/productos/TablaProductos";
 import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import ModalQRProducto from "../components/productos/ModalQRProducto.jsx"; 
 
 const Producto = () => {
 
@@ -20,11 +21,15 @@ const Producto = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  
+  // Estados para el código QR
+  const [mostrarModalQR, setMostrarModalQR] = useState(false);
+  const [productoQR, setProductoQR] = useState(null);
 
   const [nuevoProducto, setNuevoProducto] = useState({
-    nombre_producto: "",
+    nombre_productos: "", // Sincronizado con el Modal
     descripcion_producto: "",
-    categoria_producto: "",
+    id_productos: "",     // Sincronizado con el Modal
     precio_venta: "",
     archivo: null,
   });
@@ -52,11 +57,9 @@ const Producto = () => {
     setMostrarModalEdicion(true);
   };
 
-
-
   const [productoAEliminar, setProductoAEliminar] = useState(null);
+  
   const [toast, setToast] = useState({ mostrar: false, message: "", tipo: "" });
-
 
   const manejoCambioInput = (e) => {
     const { name, value } = e.target;
@@ -68,7 +71,6 @@ const Producto = () => {
 
   const manejoCambioInputEdicion = (e) => {
     const { name, value } = e.target;
-
     setProductoAEditar((prev) => ({
       ...prev,
       [name]: value,
@@ -77,7 +79,6 @@ const Producto = () => {
 
   const manejoCambioArchivoEdicion = (e) => {
     const archivo = e.target.files[0];
-
     if (archivo && archivo.type.startsWith("image/")) {
       setProductoAEditar((prev) => ({
         ...prev,
@@ -87,7 +88,6 @@ const Producto = () => {
       alert("Selecciona una imagen válida");
     }
   };
-
 
   const manejoCambioArchivo = (e) => {
     const archivo = e.target.files[0];
@@ -125,7 +125,6 @@ const Producto = () => {
     descripcion_categoria: "",
   });
 
-  // En Producto.jsx, debajo de manejoCambioInput del producto
   const manejoCambioInputCategoria = (e) => {
     const { name, value } = e.target;
     setNuevaCategoria((prev) => ({
@@ -136,52 +135,47 @@ const Producto = () => {
 
   const agregarCategoriaDesdeProductos = async () => {
     try {
-      // Validaciones...
       const { data, error } = await supabase
         .from("categorias")
         .insert([{
           nombre_categoria: nuevaCategoria.nombre_categoria,
           descripcion_categoria: nuevaCategoria.descripcion_categoria,
         }])
-        .select(); // Obtenemos el registro creado
+        .select();
 
       if (error) throw error;
 
-      const categoriaCreada = data[0];
-
-      // 1. Refrescamos la lista de categorías del selector
+      const categoryCreada = data[0];
       await cargarCategorias();
 
-      // 2. 🪄 MAGIA: Marcamos la nueva categoría en el estado del producto
       setNuevoProducto(prev => ({
         ...prev,
-        categoria_producto: categoriaCreada.id_categoria
+        id_productos: categoryCreada.id_categoria // Sincronizado al id del modal
       }));
 
-      // 3. Limpiamos y cerramos
       setNuevaCategoria({ nombre_categoria: "", descripcion_categoria: "" });
       setMostrarModalCategoria(false);
 
-      setToast({ mostrar: true, mensaje: "Categoría creada y seleccionada", tipo: "exito" });
+      setToast({ mostrar: true, message: "Categoría creada y seleccionada", tipo: "exito" });
 
     } catch (err) {
       console.error(err);
     }
   };
 
-  // ##################CARGA DE PRODUCTOS EN TABLA###########################
+  // ################## CARGA DE PRODUCTOS EN TABLA ###########################
   const cargarProductos = async () => {
     setCargando(true);
     try {
       const { data, error } = await supabase
         .from("productos")
         .select(`
-        *,
-        categorias (
-          nombre_categoria
-        )
-      `)
-        .order("id_productos", { ascending: false }); // <--- AGREGAR LA 'S' AQUÍ
+          *,
+          categorias (
+            nombre_categoria
+          )
+        `)
+        .order("id_productos", { ascending: false });
 
       if (error) throw error;
       setProductos(data || []);
@@ -191,9 +185,7 @@ const Producto = () => {
     } finally {
       setCargando(false);
     }
-
   };
-  // ###############################################
 
   useEffect(() => {
     if (!textoBusqueda.trim()) {
@@ -221,25 +213,21 @@ const Producto = () => {
 
   useEffect(() => {
     cargarProductos();
-  }, []);
-
-  useEffect(() => {
     cargarCategorias();
   }, []);
-
 
   /* ****************************************************************************** */
   const agregarProducto = async () => {
     try {
       if (
-        !nuevoProducto.nombre_producto.trim() ||
+        !nuevoProducto.nombre_productos || !nuevoProducto.nombre_productos.trim() ||
         !nuevoProducto.precio_venta ||
-        !nuevoProducto.categoria_producto ||
+        !nuevoProducto.id_productos || 
         !nuevoProducto.archivo
       ) {
         setToast({
           mostrar: true,
-          message: "Por favor completa todos los campos son obligatorios.",
+          message: "Por favor completa todos los campos son obligatorios.", 
           tipo: "advertencia",
         });
         return;
@@ -260,32 +248,32 @@ const Producto = () => {
         .getPublicUrl(nombreArchivo);
       const urlPublica = urlData.publicUrl;
 
+      // ✅ CORREGIDO: Mapeamos la columna obligatoria 'categoria_producto' que pide Supabase
       const { error } = await supabase.from("productos").insert([
         {
-          nombre_productos: nuevoProducto.nombre_producto, // Cambiado a productos (con s)
+          nombre_productos: nuevoProducto.nombre_productos, 
           descripcion_producto: nuevoProducto.descripcion_producto || null,
-          categoria_producto: nuevoProducto.categoria_producto,
+          categoria_producto: parseInt(nuevoProducto.id_productos), // 👈 CORREGIDO AQUÍ
           precio_venta: parseFloat(nuevoProducto.precio_venta),
-          url_imagen: urlPublica, // Cambiado de imagen_url a url_imagen
+          url_imagen: urlPublica,
         },
       ]);
 
       if (error) throw error;
 
       await cargarProductos();
-      setMostrarModal(false);
 
       setNuevoProducto({
-        nombre_producto: "",
+        nombre_productos: "", 
         descripcion_producto: "",
-        categoria_producto: "",
+        id_productos: "",     
         precio_venta: "",
         archivo: null,
       });
 
       setToast({
         mostrar: true,
-        message: "Producto agregado exitosamente.",
+        message: "Producto agregado exitosamente.", 
         tipo: "exito",
       });
 
@@ -293,7 +281,7 @@ const Producto = () => {
       console.error("Error al agregar producto:", err);
       setToast({
         mostrar: true,
-        message: "Error al agregar el producto. Intenta nuevamente.",
+        message: "Error al agregar el producto. Intenta nuevamente.", 
         tipo: "error",
       });
     }
@@ -306,9 +294,7 @@ const Producto = () => {
     try {
       setMostrarModalEliminacion(false);
 
-      // 1. Opcional pero recomendado: Borrar la imagen del Storage
       if (productoAEliminar.url_imagen) {
-        // Extraemos el nombre del archivo de la URL pública
         const urlPartes = productoAEliminar.url_imagen.split("/");
         const nombreArchivo = urlPartes[urlPartes.length - 1];
 
@@ -317,7 +303,6 @@ const Producto = () => {
           .remove([nombreArchivo]);
       }
 
-      // 2. Borrar el registro de la base de datos
       const { error } = await supabase
         .from("productos")
         .delete()
@@ -325,7 +310,6 @@ const Producto = () => {
 
       if (error) throw error;
 
-      // 3. Notificar y recargar
       await cargarProductos();
       setToast({
         mostrar: true,
@@ -362,11 +346,10 @@ const Producto = () => {
       let datosActualizados = {
         nombre_productos: productoAEditar.nombre_producto,
         descripcion_producto: productoAEditar.descripcion_producto,
-        categoria_producto: productoAEditar.categoria_producto,
+        categoria_producto: productoAEditar.categoria_producto, // Si la edición también requiere esta columna
         precio_venta: parseFloat(productoAEditar.precio_venta),
       };
 
-      // 🔥 SI HAY NUEVA IMAGEN
       if (productoAEditar.archivo) {
         const nombreArchivo = `${Date.now()}_${productoAEditar.archivo.name}`;
 
@@ -382,10 +365,8 @@ const Producto = () => {
 
         datosActualizados.url_imagen = data.publicUrl;
 
-        // 🔥 ELIMINAR IMAGEN ANTERIOR
         if (productoAEditar.url_imagen) {
           const nombreViejo = productoAEditar.url_imagen.split("/").pop();
-
           await supabase.storage
             .from("imagenes_productos")
             .remove([nombreViejo]);
@@ -416,6 +397,20 @@ const Producto = () => {
         tipo: "error",
       });
     }
+  };
+
+  const generarQRImagen = (producto) => {
+    if (!producto?.url_imagen) {
+      setToast({
+        mostrar: true,
+        message: "Este producto no tiene imagen asociada",
+        tipo: "advertencia", 
+      });
+      return;
+    }
+
+    setProductoQR(producto);
+    setMostrarModalQR(true);
   };
 
   return (
@@ -464,6 +459,7 @@ const Producto = () => {
                 setProductoAEliminar(prod);
                 setMostrarModalEliminacion(true);
               }}
+              generarQRImagen={generarQRImagen}
             />
           </Col>
         </Row>
@@ -473,7 +469,7 @@ const Producto = () => {
         </Alert>
       )}
 
-      { /* Modales */}
+      { /* Modales de Operación */}
 
       <ModalRegistroProducto
         mostrarModal={mostrarModal}
@@ -506,16 +502,24 @@ const Producto = () => {
         setMostrarModal={setMostrarModalEdicion}
         productoAEditar={productoAEditar}
         manejoCambioInput={manejoCambioInputEdicion}
-manejoCambioArchivo={manejoCambioArchivoEdicion}
+        manejoCambioArchivo={manejoCambioArchivoEdicion}
         actualizarProducto={actualizarProducto}
         categorias={categorias}
       />
 
+      <ModalQRProducto
+        mostrar={mostrarModalQR}
+        onHide={() => setMostrarModalQR(false)}
+        producto={productoQR}
+      />
+
+      {/* ✅ CORREGIDO: Enviamos tanto onClose como onCerrar para evitar fallos de interfaz */}
       <NotificacionOperacion
         mostrar={toast.mostrar}
         mensaje={toast.message}
         tipo={toast.tipo}
         onClose={() => setToast({ ...toast, mostrar: false })}
+        onCerrar={() => setToast({ ...toast, mostrar: false })}
       />
 
     </Container>

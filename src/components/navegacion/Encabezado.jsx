@@ -104,6 +104,9 @@ const Encabezado = () => {
                   <Nav.Link onClick={() => manejarNavegacion("/catalogo")} className={`text-white px-3 py-2 rounded ${location.pathname === "/catalogo" ? "bg-secondary bg-opacity-25" : ""}`} style={linkStyle}>
                     Catálogo
                   </Nav.Link>
+                  <Nav.Link onClick={() => manejarNavegacion("/dashboard")} className={`text-white px-3 py-2 rounded ${location.pathname === "/dashboard" ? "bg-secondary bg-opacity-25" : ""}`} style={linkStyle}>
+                    Dashboard
+                  </Nav.Link>
 
                   {/* Icono de cerrar sesión directo en Escritorio */}
                   <Nav.Link onClick={cerrarSesion} className="text-danger d-none d-md-block ms-2 px-2" title="Cerrar Sesión" style={linkStyle}>

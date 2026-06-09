@@ -5,8 +5,8 @@ const ModalRegistroProducto = ({
   mostrarModal, 
   setMostrarModal, 
   nuevoProducto,
-  manejoCambioinput,
-  manejoCambioArcvhivo,
+  manejoCambioInput,
+  manejoCambioArchivo,
   agregarProducto,
   categorias, 
   setMostrarModalCategoria
@@ -22,7 +22,6 @@ const ModalRegistroProducto = ({
   }
 
   return (
-
     <Modal
       show={mostrarModal}
       onHide={() => setMostrarModal(false)}
@@ -43,19 +42,19 @@ const ModalRegistroProducto = ({
                 <Form.Label>Categoria *</Form.Label>
                 <InputGroup>
                   <Form.Select
-                    name="categoria_producto"
-                    value={nuevoProducto.categoria_producto || ""}
-                    onChange={manejoCambioinput}
+                    /* 1. ✅ CORREGIDO: cambiado de categoria_producto a id_productos */
+                    name="id_productos"
+                    value={nuevoProducto.id_productos || ""}
+                    onChange={manejoCambioInput}
                     required
                   >
-                    
-                  <option value="">Seleccione...</option>
-                  {categorias.map((cat) => (
-                    <option key={cat.id_categoria} value={cat.id_categoria}>
-                      {cat.nombre_categoria}
-                    </option>
-                  ))}
-                </Form.Select>
+                    <option value="">Seleccione...</option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id_categoria} value={cat.id_categoria}>
+                        {cat.nombre_categoria}
+                      </option>
+                    ))}
+                  </Form.Select>
 
                   <Button
                     variant="outline-primary"
@@ -72,9 +71,10 @@ const ModalRegistroProducto = ({
                 <Form.Label>Nombre *</Form.Label>
                 <Form.Control
                   type="text"
-                  name="nombre_producto"
-                  value={nuevoProducto.nombre_producto || ""}
-                  onChange={manejoCambioinput}
+                  /* 2. ✅ CORREGIDO: cambiado de nombre_producto a nombre_productos (con s) */
+                  name="nombre_productos"
+                  value={nuevoProducto.nombre_productos || ""}
+                  onChange={manejoCambioInput}
                   placeholder="Nombre del producto"
                   required
                 />
@@ -90,7 +90,7 @@ const ModalRegistroProducto = ({
                   min="0"
                   name="precio_venta"
                   value={nuevoProducto.precio_venta || ""}
-                  onChange={manejoCambioinput}
+                  onChange={manejoCambioInput}
                   placeholder="Precio de venta"
                   required
                 />
@@ -103,7 +103,7 @@ const ModalRegistroProducto = ({
                 <Form.Control
                   type="file"
                   accept="image/*"
-                  onChange={manejoCambioArcvhivo}
+                  onChange={manejoCambioArchivo}
                   required
                 />
               </Form.Group>
@@ -117,7 +117,7 @@ const ModalRegistroProducto = ({
                   rows={5}
                   name="descripcion_producto"
                   value={nuevoProducto.descripcion_producto || ""}
-                  onChange={manejoCambioinput}
+                  onChange={manejoCambioInput}
                   placeholder="Descripción del producto (opcional)"
                 />
               </Form.Group>
@@ -128,7 +128,6 @@ const ModalRegistroProducto = ({
       </Modal.Body>
 
       <Modal.Footer>
-
         <Button variant="secondary" onClick={() => setMostrarModal(false)}>
           Cancelar
         </Button>
@@ -136,7 +135,6 @@ const ModalRegistroProducto = ({
         <Button variant="primary" onClick={handleAgregar} disabled={deshabilitado}>
           Agregar Producto
         </Button>
-
       </Modal.Footer>
     </Modal>
   );
