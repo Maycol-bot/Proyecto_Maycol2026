@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Nav, Navbar, Offcanvas, Button } from "react-bootstrap";
 import logo from "../../assets/logo.png";
 import { supabase } from "../../database/supabaseconfig.js";
+import ChatIA from "../ia/ChatIA.jsx";
 
 const Encabezado = () => {
   const [mostrarMenu, setMostrarMenu] = useState(false);
@@ -16,6 +17,8 @@ const Encabezado = () => {
     navigate(ruta);
     cerrarMenu();
   };
+
+  const [mostrarChatIA, setMostrarChatIA] = useState(false);
 
   const cerrarSesion = async () => {
     try {
@@ -107,6 +110,10 @@ const Encabezado = () => {
                   <Nav.Link onClick={() => manejarNavegacion("/dashboard")} className={`text-white px-3 py-2 rounded ${location.pathname === "/dashboard" ? "bg-secondary bg-opacity-25" : ""}`} style={linkStyle}>
                     Dashboard
                   </Nav.Link>
+                  <Nav.Link onClick={() => setMostrarChatIA(true)} className="text-info d-none d-md-block ms-2 px-2" title="Chat IA" style={linkStyle}>
+                    <i className="bi bi-robot fs-4"></i>
+                  </Nav.Link>
+                  <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />
 
                   {/* Icono de cerrar sesión directo en Escritorio */}
                   <Nav.Link onClick={cerrarSesion} className="text-danger d-none d-md-block ms-2 px-2" title="Cerrar Sesión" style={linkStyle}>
