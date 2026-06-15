@@ -9,33 +9,41 @@ import TarjetaVenta from "../components/ventas/TarjetaVenta.jsx";
 import FormularioVenta from "../components/ventas/FormularioVenta.jsx";
 
 const Ventas = () => {
-  const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
-  const [ventas, setVentas] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [ventaAEditar, setVentaAEditar] = useState(null);
+  // --- 1. ESTADOS DE CONTROL DE INTERFAZ (UI) ---
+  const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" }); // Mensajes de feedback
+  const [cargando, setCargando] = useState(true);                                // Spinner de carga general
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);            // Control de visibilidad del Modal
+  const [ventaAEditar, setVentaAEditar] = useState(null);                        // Almacena la venta seleccionada para modificar
 
-  const [clientes, setClientes] = useState([]);
-  const [empleados, setEmpleados] = useState([]);
-  const [productos, setProductos] = useState([]);
+  // --- 2. ESTADOS DE DATOS DE LA BASE DE DATOS ---
+  const [ventas, setVentas] = useState([]);       // Listado maestro de ventas desde Supabase
+  const [clientes, setClientes] = useState([]);   // Catálogo para llenar el selector del formulario
+  const [empleados, setEmpleados] = useState([]); // Catálogo para llenar el selector del formulario
+  const [productos, setProductos] = useState([]); // Catálogo de productos disponibles
 
+  // --- 3. ESTADOS TEMPORALES DEL FORMULARIO TRANSACCIONAL ---
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
   const [metodoPago, setMetodoPago] = useState("efectivo");
-  const [detalles, setDetalles] = useState([]);
-  const [totalGeneral, setTotalGeneral] = useState(0);
+  const [detalles, setDetalles] = useState([]);         // Artículos agregados a la venta actual
+  const [totalGeneral, setTotalGeneral] = useState(0);  // Suma total calculada de los detalles
 
+  // --- 4. ESTADOS FILTRADO Y PAGINACIÓN ---
   const [textoBusqueda, setTextoBusqueda] = useState("");
   const [ventasFiltradas, setVentasFiltradas] = useState([]);
   const [registrosPorPagina, establecerRegistrosPorPagina] = useState(8);
   const [paginaActual, establecerPaginaActual] = useState(1);
 
+  // --- 5. LÓGICA DE PAGINACIÓN ---
+  // Segmenta la lista ya filtrada para mostrar únicamente el bloque correspondiente a la página actual
   const ventasPaginadas = ventasFiltradas.slice(
     (paginaActual - 1) * registrosPorPagina,
     paginaActual * registrosPorPagina
   );
 
-  // Cargar datos
+  // --- 6. PETICIONES A LA API (SUPABASE) ---
+  
+  // Trae los catálogos de soporte de forma simultánea para agilizar la carga del formulario
   const cargarDatosAuxiliares = async () => {
     try {
       const [c, e, p] = await Promise.all([
@@ -51,6 +59,7 @@ const Ventas = () => {
     }
   };
 
+  // Trae el historial de ventas realizando los JOINS relacionales necesarios para mostrar los nombres reales
   const cargarVentas = async () => {
     try {
       setCargando(true);
@@ -61,7 +70,7 @@ const Ventas = () => {
           clientes (nombre_cliente, apellido_cliente),
           empleados (nombre_empleado, apellido_empleado),
           detalles_ventas (*, productos (nombre_productos)) 
-        `) // 👆 CORREGIDO: Se cambió 'nombre_producto' por 'nombre_productos' con "s"
+        `)
         .order("fecha_venta", { ascending: false });
 
       if (error) {
@@ -78,12 +87,15 @@ const Ventas = () => {
     }
   };
 
+  // --- 7. EFECTOS (USEEFFECT) ---
+
+  // Inicialización: Carga todos los datos al montar el componente por primera vez
   useEffect(() => {
     cargarVentas();
     cargarDatosAuxiliares();
   }, []);
 
-  // Precargar formulario al editar
+  // Modo Edición: Cuando se selecciona una venta para editar, rellena los estados del formulario
   useEffect(() => {
     if (ventaAEditar) {
       const cliente = clientes.find(c => c.id_cliente === ventaAEditar.id_cliente);
@@ -107,13 +119,13 @@ const Ventas = () => {
     }
   }, [ventaAEditar, clientes, empleados]);
 
-  // Calcular total
+  // Cálculo Automático: Actualiza el valor total acumulado cada vez que cambia un artículo o cantidad
   useEffect(() => {
     const total = detalles.reduce((sum, det) => sum + (det.cantidad * det.precio), 0);
     setTotalGeneral(total);
   }, [detalles]);
 
-  // Búsqueda
+  // Filtro en Tiempo Real: Ejecuta la búsqueda sobre la lista de ventas según el cliente o empleado digitado
   useEffect(() => {
     if (!textoBusqueda.trim()) {
       setVentasFiltradas(ventas);
@@ -126,6 +138,8 @@ const Ventas = () => {
       setVentasFiltradas(filtradas);
     }
   }, [textoBusqueda, ventas]);
+
+  // --- 8. CONTROLADORES DE EVENTOS Y FLUJO DEL FORMULARIO ---
 
   const abrirNuevaVenta = () => {
     resetFormulario();
@@ -145,11 +159,13 @@ const Ventas = () => {
     setVentaAEditar(null);
   };
 
+  // --- 9. MANEJO DE LA "CANASTA" O DETALLES DE VENTA ---
+
+  // Añade productos a la lista interna controlando si ya existen para incrementar su cantidad
   const agregarDetalle = (producto, cantidad) => {
     if (!producto || !cantidad) return;
     
     setDetalles(prev => {
-      // CORREGIDO: Se usa id_productos (con 's') porque así viene de la tabla productos
       const existe = prev.find(d => d.id_producto === producto.id_productos);
       
       if (existe) {
@@ -158,13 +174,10 @@ const Ventas = () => {
         );
       }
       
-      // Aquí armamos el objeto detalle interno del formulario. 
-      // Mantenemos las propiedades en singular para no alterar tu FormularioVenta,
-      // pero las alimentamos con los campos correctos (con 's') del objeto 'producto'
       return [...prev, {
-        id_producto: producto.id_productos,         // CORREGIDO: id_productos
-        nombre_producto: producto.nombre_productos, // CORREGIDO: nombre_productos
-        precio: producto.precio_venta,              // Este se mantiene igual
+        id_producto: producto.id_productos,        
+        nombre_producto: producto.nombre_productos, 
+        precio: producto.precio_venta,              
         cantidad
       }];
     });
@@ -181,6 +194,7 @@ const Ventas = () => {
     ));
   };
 
+  // --- 10. ENVÍO DE DATOS A LA BASE DE DATOS (INSERT / UPDATE) ---
   const guardarVenta = async () => {
     if (!clienteSeleccionado || !empleadoSeleccionado || detalles.length === 0) {
       setToast({ mostrar: true, mensaje: "Faltan datos obligatorios", tipo: "advertencia" });
@@ -189,7 +203,7 @@ const Ventas = () => {
 
     try {
       if (ventaAEditar) {
-        // === ACTUALIZAR ===
+        // ACCIÓN: Actualizar cabecera de la venta
         await supabase.from("ventas").update({
           id_cliente: clienteSeleccionado.id_cliente,
           id_empleado: empleadoSeleccionado.id_empleado,
@@ -197,6 +211,7 @@ const Ventas = () => {
           total: totalGeneral
         }).eq("id_venta", ventaAEditar.id_venta);
 
+        // Re-estructuración de detalles: Borramos los anteriores e insertamos los nuevos actualizados
         await supabase.from("detalles_ventas").delete().eq("id_venta", ventaAEditar.id_venta);
 
         const detallesInsert = detalles.map(d => ({
@@ -208,10 +223,10 @@ const Ventas = () => {
         }));
 
         await supabase.from("detalles_ventas").insert(detallesInsert);
-
         setToast({ mostrar: true, mensaje: "Venta actualizada exitosamente", tipo: "exito" });
+
       } else {
-        // === NUEVA VENTA ===
+        // ACCIÓN: Insertar nueva venta
         const nicaNow = () => new Date().toLocaleString("sv", { timeZone: "America/Managua" }).replace(" ", "T");
 
         const { data: ventaData } = await supabase
@@ -226,6 +241,7 @@ const Ventas = () => {
           .select()
           .single();
 
+        // Enlazamos los detalles capturados en la UI con el ID generado de la nueva venta
         const detallesInsert = detalles.map(d => ({
           id_venta: ventaData.id_venta,
           id_producto: d.id_producto,
@@ -235,13 +251,13 @@ const Ventas = () => {
         }));
 
         await supabase.from("detalles_ventas").insert(detallesInsert);
-
         setToast({ mostrar: true, mensaje: "Venta registrada exitosamente", tipo: "exito" });
       }
 
+      // Cierre de ciclo de la operación
       resetFormulario();
       setMostrarFormulario(false);
-      await cargarVentas();
+      await cargarVentas(); // Recarga la tabla con los cambios reflejados en tiempo real
 
     } catch (err) {
       console.error(err);
@@ -251,8 +267,10 @@ const Ventas = () => {
 
   const manejarBusqueda = (e) => setTextoBusqueda(e.target.value);
 
+  // --- 11. ESTRUCTURA INTERFAZ GRÁFICA (JSX) ---
   return (
     <Container className="mt-3">
+      {/* SECCIÓN CABECERA: Título y Botón de creación */}
       <Row className="align-items-center mb-3">
         <Col xs={8} lg={8}>
           <h3 className="mb-0">
@@ -268,6 +286,7 @@ const Ventas = () => {
       </Row>
       <hr />
 
+      {/* SECCIÓN FILTROS: Cuadro de búsqueda */}
       <Row className="mb-4">
         <Col md={6} lg={5}>
           <CuadroBusquedas
@@ -278,6 +297,7 @@ const Ventas = () => {
         </Col>
       </Row>
 
+      {/* SECCIÓN CONTENIDO PRINCIPAL: Validar si está cargando o renderiza la lista */}
       {cargando ? (
         <Row className="text-center my-5">
           <Spinner animation="border" variant="success" size="lg" />
@@ -285,15 +305,18 @@ const Ventas = () => {
         </Row>
       ) : (
         <Row>
+          {/* Vista móvil/tablet: Tarjetas adaptables */}
           <Col xs={12} className="d-lg-none">
             <TarjetaVenta ventas={ventasPaginadas} abrirEdicion={abrirEdicion} />
           </Col>
+          {/* Vista desktop: Tabla tradicional */}
           <Col lg={12} className="d-none d-lg-block">
             <TablaVentas ventas={ventasPaginadas} abrirEdicion={abrirEdicion} />
           </Col>
         </Row>
       )}
 
+      {/* SECCIÓN PAGINACIÓN: Solo aparece si existen elementos filtrados */}
       {ventasFiltradas.length > 0 && (
         <Paginacion
           registrosPorPagina={registrosPorPagina}
@@ -304,6 +327,7 @@ const Ventas = () => {
         />
       )}
 
+      {/* MODAL TRANSACCIONAL: Crear o Modificar Ventas con sus detalles */}
       <FormularioVenta
         mostrar={mostrarFormulario}
         setMostrar={setMostrarFormulario}
@@ -325,6 +349,7 @@ const Ventas = () => {
         ventaAEditar={ventaAEditar}
       />
 
+      {/* COMPONENTE ALERTAS: Toasts de estado */}
       <NotificacionOperacion
         mostrar={toast.mostrar}
         mensaje={toast.mensaje}

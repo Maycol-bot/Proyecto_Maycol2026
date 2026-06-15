@@ -10,41 +10,52 @@ const ModalEdicionProducto = ({
   actualizarProducto,
   categorias,
 }) => {
-
-  // 🔥 Evita múltiples clics
+  // Estado local para prevenir mutaciones simultáneas por múltiples clics rápidos
   const [cargando, setCargando] = useState(false);
 
   const handleActualizar = async () => {
     if (cargando) return;
 
-    setCargando(true);
-    await actualizarProducto();
-    setCargando(false);
+    // Validación mínima en el frontend antes de disparar la petición a Supabase
+    if (!productoAEditar.nombre_productos?.trim() || !productoAEditar.categoria_producto || !productoAEditar.precio_venta) {
+      return;
+    }
+
+    try {
+      setCargando(true);
+      await actualizarProducto();
+    } catch (error) {
+      console.error("Error en la llamada de actualización:", error);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <Modal
       show={mostrarModal}
-      onHide={() => setMostrarModal(false)}
+      onHide={() => !cargando && setMostrarModal(false)} // Previene cerrar el modal accidentalmente a mitad de una subida
+      backdrop={cargando ? "static" : true}
+      keyboard={!cargando}
       centered
       size="lg"
     >
-      <Modal.Header closeButton>
+      <Modal.Header closeButton={!cargando}>
         <Modal.Title>Editar Producto</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <Form>
-
-          {/* NOMBRE */}
+          {/* NOMBRE DEL PRODUCTO */}
           <Form.Group className="mb-3">
             <Form.Label>Nombre del producto *</Form.Label>
             <Form.Control
               type="text"
-              name="nombre_producto"
-              value={productoAEditar.nombre_producto}
+              name="nombre_productos" // Ajustado al esquema de tu tabla
+              value={productoAEditar.nombre_productos || ""}
               onChange={manejoCambioInput}
-              placeholder="Ej: Shampoo"
+              placeholder="Ej: Amortiguador Delantero"
+              disabled={cargando}
             />
           </Form.Group>
 
@@ -55,20 +66,22 @@ const ModalEdicionProducto = ({
               as="textarea"
               rows={3}
               name="descripcion_producto"
-              value={productoAEditar.descripcion_producto}
+              value={productoAEditar.descripcion_producto || ""}
               onChange={manejoCambioInput}
+              disabled={cargando}
             />
           </Form.Group>
 
           <Row>
-            {/* CATEGORÍA */}
+            {/* SELECCIÓN DE CATEGORÍA */}
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Categoría *</Form.Label>
                 <Form.Select
                   name="categoria_producto"
-                  value={productoAEditar.categoria_producto}
+                  value={productoAEditar.categoria_producto || ""}
                   onChange={manejoCambioInput}
+                  disabled={cargando}
                 >
                   <option value="">Seleccione</option>
                   {categorias.map((cat) => (
@@ -80,45 +93,50 @@ const ModalEdicionProducto = ({
               </Form.Group>
             </Col>
 
-            {/* PRECIO */}
+            {/* PRECIO DE VENTA */}
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Precio *</Form.Label>
                 <Form.Control
                   type="number"
                   name="precio_venta"
-                  value={productoAEditar.precio_venta}
+                  value={productoAEditar.precio_venta || ""}
                   onChange={manejoCambioInput}
                   placeholder="Ej: 150"
+                  disabled={cargando}
+                  min="0"
+                  step="0.01"
                 />
               </Form.Group>
             </Col>
           </Row>
 
-          {/* IMAGEN */}
+          {/* CARGA DE ARCHIVO (REEMPLAZO DE IMAGEN) */}
           <Form.Group className="mb-3">
             <Form.Label>Actualizar imagen</Form.Label>
             <Form.Control
               type="file"
               accept="image/*"
               onChange={manejoCambioArchivo}
+              disabled={cargando}
             />
           </Form.Group>
 
-          {/* PREVISUALIZACIÓN */}
+          {/* PREVISUALIZACIÓN DE IMAGEN ACTUAL / NUEVA */}
           {productoAEditar.url_imagen && (
             <div className="text-center mb-3">
+              <span className="d-block text-muted small mb-2">Imagen actual / seleccionada:</span>
               <img
                 src={productoAEditar.url_imagen}
                 alt="Producto"
+                className="img-thumbnail"
                 style={{
-                  maxHeight: "200px",
+                  maxHeight: "180px",
                   objectFit: "contain",
                 }}
               />
             </div>
           )}
-
         </Form>
       </Modal.Body>
 
@@ -134,7 +152,12 @@ const ModalEdicionProducto = ({
         <Button
           variant="primary"
           onClick={handleActualizar}
-          disabled={cargando}
+          disabled={
+            cargando || 
+            !productoAEditar.nombre_productos?.trim() || 
+            !productoAEditar.categoria_producto || 
+            !productoAEditar.precio_venta
+          }
         >
           {cargando ? (
             <>
